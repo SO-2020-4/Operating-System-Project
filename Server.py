@@ -18,84 +18,76 @@ class Server:
         self.computerA = computerA
         self.computerB = computerB
         self.computerC = computerC
-        self.metadata=open(filename,'a')
         
     def write_meta_data(self,data):
-        self.metadata.writelines(data)
-        self.metadata.close()
-        
+        metadata= open('metadata.txt', 'a')
+        metadata.write(data)
+        metadata.close()
         
     def ChooseComputer(self, matrixDecoded):
         for i in range(len(matrixDecoded)):
-        
+            time.sleep(1)
             if(self.computerA.mutex1.locked() == False): 
-                print('Computador A | Mutex 1 | Matrix:'+ str(i))
-                r=self.computerA.scheduler(matrixDecoded[i], self.computerA.mutex1, 15)
-                print(r)
-                #self.write_meta_data(['Computador A | Mutex 1 | Matrix:'+ str(i)+'\n',r])
-           
-                
-            
+                print('Computer A | Mutex 1 | Matrix:'+ str(i))
+                result = self.computerA.scheduler(matrixDecoded[i], self.computerA.mutex1, 10)
+                self.write_meta_data( '\n' + 'Computer A | Mutex 1 | Matrix:' + str(i)+ '\n' + str(result) + '\n' )
             
             elif(self.computerA.mutex2.locked() == False):	
-                print('Computador A | Mutex 2 | Matrix:'+ str(i))
-                r=self.computerA.scheduler(matrixDecoded[i], self.computerA.mutex2, 10)
-                print(r)
-                #self.write_meta_data('Computador A | Mutex 2 | Matrix:'+ str(i),r)
+                print('Computer A | Mutex 2 | Matrix:'+ str(i))
+                result = self.computerA.scheduler(matrixDecoded[i], self.computerA.mutex2, 10)
+                self.write_meta_data('\n' + 'Computer A | Mutex 2 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
                 
-            		
             elif(self.computerB.mutex1.locked() == False): 
-                print('Computador B | Mutex 1')
-                self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex1, 10)
-            
+                print('Computer B | Mutex 1 | Matrix:'+ str(i))
+                result = self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex1, 10)
+                self.write_meta_data('\n' + 'Computer B | Mutex 1 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
+
             elif(self.computerB.mutex2.locked() == False):
-                print('Computador B | Mutex 2')	
-                self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex2, 0)
+                print('Computer B | Mutex 2 | Matrix:'+ str(i))	
+                result = self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex2, 4)
+                self.write_meta_data('\n' + 'Computer B | Mutex 2 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
             
             elif(self.computerB.mutex3.locked() == False):
-                print('Computador B | Mutex 3')
-                self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex3, 6)
+                print('Computer B | Mutex 3 | Matrix:'+ str(i))
+                result = self.computerB.scheduler(matrixDecoded[i], self.computerB.mutex3, 8)
+                self.write_meta_data('\n' + 'Computer B | Mutex 3 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
                 
             elif(self.computerC.mutex1.locked() == False): 
-                print('Computador C | Mutex 1')
-                self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex1, 4)
+                print('Computer C | Mutex 1 | Matrix:'+ str(i))
+                result = self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex1, 8)
+                self.write_meta_data('\n' + 'Computer C | Mutex 1 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
                 
             elif(self.computerC.mutex2.locked() == False):
-                print('Computador C | Mutex 2')	
-                self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex2, 2)
+                print('Computer C | Mutex 2 | Matrix:'+ str(i))	
+                result = self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex2, 2)
+                self.write_meta_data('\n' + 'Computer C | Mutex 2 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
             
             elif(self.computerC.mutex3.locked() == False):
-                print('Computador C | Mutex 3')
-                self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex3, 1)
+                print('Computer C | Mutex 3 | Matrix:'+ str(i))
+                result = self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex3, 1)
+                self.write_meta_data('\n' + 'Computer C | Mutex 3 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
                                 
             elif(self.computerC.mutex4.locked() == False):
-                print('Computador C | Mutex 4')
-                self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex4, 4)
-            """
-        		# send back reversed string to client
-        		matrixEncoded = pickle.dumps( result )
-        		c.sendall(matrixEncoded) 
-                # connection closed 
-                c.close()
-            """
+                print('Computer C | Mutex 4 | Matrix:'+ str(i))
+                result = self.computerC.scheduler(matrixDecoded[i], self.computerC.mutex4, 2)
+                self.write_meta_data('\n' + 'Computer C | Mutex 4 | Matrix:' + str(i) + '\n' + str(result) + '\n' )
     	
-    def main_thread(self, c):
-        result = []
-    
+    def main_thread(self, c):    
         while True: 
-            # data received from client 
-            data = c.recv(8000) 
+            data = c.recv(4096) 
             
             if not data: 
                 print('Bye') 
                 				
-                # lock released on exit 
                 main_mutex.release() 
                 break
             else:
                 matrixDecoded = pickle.loads(data)
-               
                 self.ChooseComputer(matrixDecoded)
+            
+                mensagem = pickle.dumps( "As matrizes foram calculadas com sucesso. Verifique o arquivo metadata" )
+                c.sendall(mensagem)
+        c.close()
                 
        
     def BindToClient(self): 
@@ -116,14 +108,13 @@ class Server:
             print('Connected to :', addr[0], ':', addr[1]) 
             # Start a new thread and return its identifier 
             start_new_thread(self.main_thread, (c,)) 
-            s.close() 
+            # s.close() 
     
     
 if __name__ == '__main__': 
-
 	computerA = ComputerA("192.168.0.1")
 	computerB = ComputerB("192.168.0.2")
 	computerC = ComputerC("192.168.0.3")
 
-	server = Server(5004, computerA, computerB, computerC,'metadata1.txt') 
+	server = Server(5004, computerA, computerB, computerC, 'metadata.txt') 
 	server.BindToClient()
